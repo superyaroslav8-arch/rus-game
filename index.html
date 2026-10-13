@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>РУСЬ — Открытый мир России</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+        }
+        .screen.active { display: flex; }
+
+        /* SPLASH - Медведь */
+        #splash {
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #050505 100%);
+        }
+        #splash .logo-container {
+            text-align: center;
+            animation: fadeIn 2s ease;
+        }
+        #splash .bear {
+            font-size: 120px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 30px rgba(180,120,60,0.4));
+        }
+        #splash h1 {
+            font-size: 90px;
+            font-weight: 900;
+            letter-spacing: 12px;
+            color: #d4d4d4;
+            text-shadow: 0 0 40px rgba(255,255,255,0.15), 0 4px 0 #333;
+            background: linear-gradient(180deg, #f0f0f0 0%, #888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #splash .subtitle {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #666;
+            letter-spacing: 4px;
+        }
+
+        /* LOADING - Лис */
+        #loading {
+            background: #0d0d0d;
+        }
+        .fox {
+            font-size: 100px;
+            animation: spin 1.2s linear infinite;
+            margin-bottom: 30px;
+        }
+        .fox.run {
+            animation: run 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes run {
+            from { transform: translateX(-40px); }
+            to { transform: translateX(40px); }
+        }
+        .progress-bar {
+            width: 320px;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #c45c26, #e07a3a);
+            transition: width 0.3s;
+        }
+        .loading-text {
+            margin-top: 15px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* GOOSE INTRO */
+        #goose-intro {
+            background: #0a0a0a;
+            justify-content: flex-end;
+            padding-bottom: 40px;
+        }
+        #goose-full {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            transition: all 1.2s ease;
+            z-index: 10;
+        }
+        #goose-full.moved {
+            top: auto;
+            bottom: 120px;
+            left: 80px;
+            transform: none;
+            font-size: 80px;
+        }
+        .dialogue-box {
+            background: rgba(20,20,20,0.95);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px 30px;
+            max-width: 700px;
+            margin: 0 40px 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 0.8s;
+        }
+        .dialogue-box.show { opacity: 1; }
+        .dialogue-box h2 {
+            color: #e07a3a;
+            margin-bottom: 12px;
+            font-size: 22px;
+        }
+        .dialogue-box p {
+            line-height: 1.6;
+            font-size: 16px;
+            color: #ccc;
+        }
+        .btn {
+            margin-top: 20px;
+            padding: 12px 32px;
+            background: #c45c26;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #e07a3a; }
+
+        /* CHARACTER CREATOR */
+        #creator {
+            background: #0c0c0c;
+            overflow-y: auto;
+            padding: 40px 20px;
+            justify-content: flex-start;
+        }
+        .creator-panel {
+            background: #151515;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .creator-panel h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #ddd;
+            font-size: 28px;
+        }
+        .section {
+            margin-bottom: 28px;
+        }
+        .section h3 {
+            color: #c45c26;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .option {
+            padding: 10px 18px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .option:hover, .option.selected {
+            border-color: #c45c26;
+            background: #2a1f18;
+        }
+        .color-swatch {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            cursor: pointer;
+        }
+        .color-swatch.selected { border-color: #c45c26; }
+        .preview {
+            text-align: center;
+            font-size: 80px;
+            margin: 20px 0;
+        }
+        .support {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 13px;
+            color: #555;
+            text-align: right;
+        }
+        .support a {
+            color: #888;
+            text-decoration: none;
+        }
+        .support a:hover { color: #c45c26; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- SPLASH: Медведь -->
+    <div id="splash" class="screen active">
+        <div class="logo-container">
+            <div class="bear">🐻</div>
+            <h1>РУСЬ</h1>
+            <div class="subtitle">ОТКРЫТЫЙ МИР РОССИИ</div>
+        </div>
+    </div>
+
+    <!-- LOADING: Лис -->
+    <div id="loading" class="screen">
+        <div class="fox" id="fox">🦊</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+        <div class="loading-text" id="loading-text">Загрузка мира...</div>
+    </div>
+
+    <!-- GOOSE INTRO -->
+    <div id="goose-intro" class="screen">
+        <div id="goose-full">🦢</div>
+        <div class="dialogue-box" id="dialogue">
+            <h2>Гусь</h2>
+            <p id="goose-text">Привет! Я Гусь — твой главный помощник в мире РУСЬ.<br><br>Здесь ты можешь создать своего персонажа, выбрать животное или технику, надеть любой рюкзак и делать абсолютно всё, что возможно в реальной жизни. Всё на русском. Всё бесплатно.<br><br>Готов начать?</p>
+            <button class="btn" onclick="startCreator()">Создать персонажа</button>
+        </div>
+    </div>
+
+    <!-- CHARACTER CREATOR -->
+    <div id="creator" class="screen">
+        <div class="creator-panel">
+            <h2>Создание персонажа</h2>
+            <div class="preview" id="char-preview">🧑</div>
+
+            <div class="section">
+                <h3>Цвет кожи</h3>
+                <div class="options" id="skin-colors">
+                    <div class="color-swatch selected" style="background:#f5d0b0" onclick="selectSkin(this,'#f5d0b0')"></div>
+                    <div class="color-swatch" style="background:#e0ac69" onclick="selectSkin(this,'#e0ac69')"></div>
+                    <div class="color-swatch" style="background:#c68642" onclick="selectSkin(this,'#c68642')"></div>
+                    <div class="color-swatch" style="background:#8d5524" onclick="selectSkin(this,'#8d5524')"></div>
+                    <div class="color-swatch" style="background:#5c3317" onclick="selectSkin(this,'#5c3317')"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Цвет глаз</h3>
+                <div class="options">
+                    <div class="option selected" onclick="selectOption(this)">Карие</div>
+                    <div class="option" onclick="selectOption(this)">Голубые</div>
+                    <div class="option" onclick="selectOption(this)">Зелёные</div>
+                    <div class="option" onclick="selectOption(this)">Серые</div>
+                    <div class="option" onclick="selectOption(this)">Чёрные</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Животное / Техника (помощник)</h3>
+                <div class="options">
+                    <div class="option selected" onclick="selectOption(this)">🐻 Медведь (сила)</div>
+                    <div class="option" onclick="selectOption(this)">🦢 Гусь (голос + полёт)</div>
+                    <div class="option" onclick="selectOption(this)">🦊 Лиса (хитрость)</div>
+                    <div class="option" onclick="selectOption(this)">🐯 Тигр</div>
+                    <div class="option" onclick="selectOption(this)">🦁 Лев</div>
+                    <div class="option" onclick="selectOption(this)">🦜 Попугай (камера)</div>
+                    <div class="option" onclick="selectOption(this)">🚁 Дрон DJI</div>
+                    <div class="option" onclick="selectOption(this)">🤖 Робот</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Рюкзак</h3>
+                <div class="options">
+                    <div class="option selected" onclick="selectOption(this)">Обычный</div>
+                    <div class="option" onclick="selectOption(this)">3D-принтер Bambu Lab</div>
+                    <div class="option" onclick="selectOption(this)">Полицейский (дроны)</div>
+                    <div class="option" onclick="selectOption(this)">Спецназ (ракеты + дрон)</div>
+                    <div class="option" onclick="selectOption(this)">Колонка</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Голосовой помощник</h3>
+                <div class="options">
+                    <div class="option selected" onclick="selectOption(this)">Алиса</div>
+                    <div class="option" onclick="selectOption(this)">Гусь (если выбран)</div>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:30px;">
+                <button class="btn" onclick="enterWorld()">Войти в РУСЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WORLD PLACEHOLDER -->
+    <div id="world" class="screen">
+        <h1 style="font-size:48px; margin-bottom:20px;">РУСЬ</h1>
+        <p style="color:#888; max-width:600px; text-align:center; line-height:1.6;">
+            Мир загружен. Здесь будет полный открытый мир России с миллионом+ миссий, транспортом (поезда, самолёты, машины), стрельбой, созданием всего и полной свободой.<br><br>
+            Графика уровня GTA V / GTA VI. Всё бесплатно. Всё на русском.
+        </p>
+        <button class="btn" style="margin-top:30px;" onclick="location.reload()">Начать заново</button>
+    </div>
+
+    <div class="support">
+        Поддержка: Telegram / звонки<br>
+        <a href="https://t.me/+79002373222" target="_blank">+7 900 237-32-22</a>
+    </div>
+
+    <script>
+        // Sequence
+        setTimeout(() => {
+            document.getElementById('splash').classList.remove('active');
+            document.getElementById('loading').classList.add('active');
+            startLoading();
+        }, 3500);
+
+        function startLoading() {
+            const progress = document.getElementById('progress');
+            const text = document.getElementById('loading-text');
+            const fox = document.getElementById('fox');
+            let p = 0;
+            const phrases = ['Загрузка мира...', 'Подготовка животных...', 'Инициализация дронов DJI...', 'Загрузка рюкзаков Bambu Lab...', 'Почти готово...'];
+            const interval = setInterval(() => {
+                p += Math.random() * 12 + 4;
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(interval);
+                    setTimeout(showGoose, 600);
+                }
+                progress.style.width = p + '%';
+                text.textContent = phrases[Math.min(Math.floor(p/20), phrases.length-1)];
+                // Иногда лис бегает вместо вращения
+                if (Math.random() > 0.7) {
+                    fox.classList.add('run');
+                    fox.classList.remove('spin');
+                } else {
+                    fox.classList.remove('run');
+                }
+            }, 280);
+        }
+
+        function showGoose() {
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('goose-intro').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('goose-full').classList.add('moved');
+                document.getElementById('dialogue').classList.add('show');
+            }, 800);
+        }
+
+        function startCreator() {
+            document.getElementById('goose-intro').classList.remove('active');
+            document.getElementById('creator').classList.add('active');
+        }
+
+        function selectSkin(el, color) {
+            document.querySelectorAll('#skin-colors .color-swatch').forEach(s => s.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function selectOption(el) {
+            el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function enterWorld() {
+            document.getElementById('creator').classList.remove('active');
+            document.getElementById('world').classList.add('active');
+        }
+    </script>
+</body>
+</html>
